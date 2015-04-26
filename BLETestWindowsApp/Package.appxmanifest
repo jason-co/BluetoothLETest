@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Package xmlns="http://schemas.microsoft.com/appx/2010/manifest" xmlns:m2="http://schemas.microsoft.com/appx/2013/manifest">
+
+  <Identity Name="2f253e80-ed4b-4324-86ff-bb42d1fbc96b"
+            Publisher="CN=JC"
+            Version="1.0.0.0" />
+
+  <Properties>
+    <DisplayName>BLETestWindowsApp</DisplayName>
+    <PublisherDisplayName>JC</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+
+  <Prerequisites>
+    <OSMinVersion>6.3.0</OSMinVersion>
+    <OSMaxVersionTested>6.3.0</OSMaxVersionTested>
+  </Prerequisites>
+
+  <Resources>
+    <Resource Language="x-generate"/>
+  </Resources>
+
+  <Applications>
+    <Application Id="App"
+        Executable="$targetnametoken$.exe"
+        EntryPoint="BLETestWindowsApp.App">
+        <m2:VisualElements
+            DisplayName="BLETestWindowsApp"
+            Square150x150Logo="Assets\Logo.png"
+            Square30x30Logo="Assets\SmallLogo.png"
+            Description="BLETestWindowsApp"
+            ForegroundText="light"
+            BackgroundColor="#464646">
+            <m2:SplashScreen Image="Assets\SplashScreen.png" />
+        </m2:VisualElements>
+    </Application>
+  </Applications>
+  <Capabilities>
+    <Capability Name="internetClient" />
+	 <m2:DeviceCapability Name="bluetooth.genericAttributeProfile">  
+    <m2:Device Id="any">  
+	 <!-- IR Temperature Service -->
+     <m2:Function Type="serviceId:f000aa00-0451-4000-b000-000000000000"/>  
+     <!-- Accelerometer Service -->
+	 <m2:Function Type="serviceId:F000AA10-0451-4000-B000-000000000000"/>  
+     <!-- Humidity Service -->
+	 <m2:Function Type="serviceId:F000AA20-0451-4000-B000-000000000000"/>  
+     <!-- Magnetometer Service -->
+	 <m2:Function Type="serviceId:F000AA30-0451-4000-B000-000000000000"/>  
+     <!-- Barometer Service -->
+	 <m2:Function Type="serviceId:F000AA40-0451-4000-B000-000000000000"/>  
+     <!-- Gyroscope Service -->
+	 <m2:Function Type="serviceId:F000AA50-0451-4000-B000-000000000000"/>  
+     <!-- Simple Keys Service -->
+	 <m2:Function Type="serviceId:0000ffe0-0000-1000-8000-00805f9b34fb"/>  
+	 <!-- Generic Access Service -->
+     <m2:Function Type="serviceId:00001800-0000-1000-8000-00805f9b34fb"/>  
+	 <!-- Generic Attribute Service -->
+     <m2:Function Type="serviceId:00001801-0000-1000-8000-00805f9b34fb"/>  
+	 <!-- Device Information Service -->
+     <m2:Function Type="serviceId:0000180A-0000-1000-8000-00805f9b34fb"/>  
+    </m2:Device>  
+   </m2:DeviceCapability>  
+  </Capabilities>
+</Package>
