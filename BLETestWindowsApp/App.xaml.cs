@@ -83,10 +83,10 @@ namespace BLETestWindowsApp
 			var manager = new BluetoothManager();
 			manager.Initialize().ContinueWith( ( action ) =>
 			{
-				manager.Register( BluetoothServiceType.Accelerometer );
+				manager.Register( BluetoothServiceType.Magnetometer );
 			} );
 
-			FindAll();
+			//FindAll();
 		}
 
 		private async Task FindAll()

@@ -1,23 +1,36 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
 
 namespace BluetoothLowEnergy
 {
 	public class BluetoothService
 	{
-		private readonly BluetoothServiceType _serviceType;
-		private readonly BluetoothServiceDataType _serviceDataType;
-		private readonly GattDeviceService _serviceDevice;
-		private readonly GattCharacteristic _gattCharacteristic;
+		protected readonly BluetoothServiceType _serviceType;
+		protected readonly BluetoothServiceDataType _serviceDataType;
+		protected readonly BluetoothServiceConfig _serviceConfig;
+		protected readonly GattDeviceService _serviceDevice;
+		protected readonly GattCharacteristic _dataCharacteristic;
+		protected readonly GattCharacteristic _configCharacteristic;
 
-		public BluetoothService( BluetoothServiceType serviceType, BluetoothServiceDataType serviceDataType, GattDeviceService serviceDevice, GattCharacteristic gattCharacteristic )
+		public BluetoothService(
+			BluetoothServiceType serviceType,
+			BluetoothServiceDataType serviceDataType,
+			BluetoothServiceConfig serviceConfig,
+			GattDeviceService serviceDevice,
+			GattCharacteristic dataCharacteristic,
+			GattCharacteristic configCharacteristic )
 		{
 			_serviceType = serviceType;
 			_serviceDataType = serviceDataType;
+			_serviceConfig = serviceConfig;
 			_serviceDevice = serviceDevice;
-			_gattCharacteristic = gattCharacteristic;
+			_dataCharacteristic = dataCharacteristic;
+			_configCharacteristic = configCharacteristic;
 
 			GetValue();
 		}
@@ -32,43 +45,73 @@ namespace BluetoothLowEnergy
 
 		public void Register()
 		{
-			_gattCharacteristic.ValueChanged += _gattCharacteristic_ValueChanged;
+			Task.Run( () => SetSensor( true ) );
+			_dataCharacteristic.ValueChanged += DataCharacteristicValueChanged;
 		}
 
 		public void UnRegister()
 		{
-			_gattCharacteristic.ValueChanged -= _gattCharacteristic_ValueChanged;
+			Task.Run( () => SetSensor( false ) );
+			_dataCharacteristic.ValueChanged -= DataCharacteristicValueChanged;
 		}
 
 		#endregion
 
 		#region event handlers
 
-		private async void _gattCharacteristic_ValueChanged( GattCharacteristic sender, GattValueChangedEventArgs args )
+		private void DataCharacteristicValueChanged( GattCharacteristic sender, GattValueChangedEventArgs args )
 		{
 			if ( _serviceDataType == BluetoothServiceDataType.AccelerometerData )
 			{
-				var values = ( await sender.ReadValueAsync() ).Value.ToArray();
-				var x = values[0];
-				var y = values[1];
-				var z = values[2];
+				Task.Run( () => OnValueChanged( args ) );
 			}
 		}
 
 		#endregion
 
+		#region protected methods
+
+		protected virtual async Task OnValueChanged( GattValueChangedEventArgs args ) { }
+
+		#endregion
+
 		#region private methods
 
-		private async void GetValue()
+		protected virtual async Task GetValue()
 		{
 			switch ( _serviceDataType )
 			{
 				case BluetoothServiceDataType.GenericAccessDeviceName:
 				case BluetoothServiceDataType.DeviceInformationFirmware:
 
-					var valueBytes = ( await _gattCharacteristic.ReadValueAsync() ).Value.ToArray();
+					var valueBytes = ( await _dataCharacteristic.ReadValueAsync() ).Value.ToArray();
 					Value = Encoding.UTF8.GetString( valueBytes, 0, valueBytes.Length );
 					break;
+			}
+		}
+
+		private async Task SetSensor( bool isTurningOn )
+		{
+
+			if ( _configCharacteristic != null )
+			{
+				byte[] value = isTurningOn ? new byte[] { 1 } : new byte[] { 0 };
+				_configCharacteristic.WriteValueAsync( value.AsBuffer() );
+
+				if ( _serviceDataType == BluetoothServiceDataType.MagnetometerData )
+				{
+					var values = ( await _dataCharacteristic.ReadValueAsync() ).Value.ToArray();
+
+					var charact = _serviceDevice.GetCharacteristics( new Guid( "F000AA33-0451-4000-B000-000000000000" ) ).FirstOrDefault();
+					charact.WriteValueAsync( ( new Byte[] { 50 } ).AsBuffer() );
+					_dataCharacteristic.WriteValueAsync( value.AsBuffer() );
+
+					var notif = _serviceDevice.GetCharacteristics( new Guid( "F0002902-0451-4000-B000-000000000000" ) ).FirstOrDefault();
+					if ( notif != null )
+					{
+						notif.WriteValueAsync( value.AsBuffer() );
+					}
+				}
 			}
 		}
 

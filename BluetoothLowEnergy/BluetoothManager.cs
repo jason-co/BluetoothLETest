@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using Windows.Devices.Enumeration;
 using BluetoothLowEnergy.Attribute;
+using BluetoothLowEnergy.Behavior;
 
 namespace BluetoothLowEnergy
 {
@@ -34,10 +35,22 @@ namespace BluetoothLowEnergy
 						if ( serviceDataType != BluetoothServiceDataType.None )
 						{
 							var characteristics = serviceDevice.GetCharacteristics( serviceDataType.ToGuid() );
-							if ( characteristics.Count > 0 )
+							if ( characteristics.Any() )
 							{
 								var characteristic = characteristics.First();
-								var service = new BluetoothService( serviceType, serviceDataType, serviceDevice, characteristic );
+
+								BluetoothServiceConfig serviceConfig = GetServiceConfig( serviceType );
+								var configCharacteristic = serviceDevice.GetCharacteristics( serviceConfig.ToGuid() ).FirstOrDefault();
+
+								BluetoothService service;
+								if ( serviceType == BluetoothServiceType.Accelerometer )
+								{
+									service = new AccelerometerLockStation( serviceType, serviceDataType, serviceConfig, serviceDevice, characteristic, configCharacteristic );
+								}
+								else
+								{
+									service = new BluetoothService( serviceType, serviceDataType, serviceConfig, serviceDevice, characteristic, configCharacteristic );
+								}
 								_services.Add( serviceType, service );
 							}
 						}
@@ -85,6 +98,27 @@ namespace BluetoothLowEnergy
 			}
 
 			return BluetoothServiceDataType.None;
+		}
+
+		private BluetoothServiceConfig GetServiceConfig( BluetoothServiceType serviceType )
+		{
+			switch ( serviceType )
+			{
+				case BluetoothServiceType.IRTemperature:
+					return BluetoothServiceConfig.IRTemperatureConfig;
+				case BluetoothServiceType.Accelerometer:
+					return BluetoothServiceConfig.AccelerometerConfig;
+				case BluetoothServiceType.Humidity:
+					return BluetoothServiceConfig.HumidityConfig;
+				case BluetoothServiceType.Magnetometer:
+					return BluetoothServiceConfig.MagnetometerConfig;
+				case BluetoothServiceType.Barometer:
+					return BluetoothServiceConfig.BarometerConfig;
+				case BluetoothServiceType.Gyroscope:
+					return BluetoothServiceConfig.GyroscopeConfig;
+			}
+
+			return BluetoothServiceConfig.None;
 		}
 	}
 }

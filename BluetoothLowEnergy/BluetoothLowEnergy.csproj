@@ -43,8 +43,12 @@
   <ItemGroup>
     <Compile Include="Attribute\EnumExtensions.cs" />
     <Compile Include="Attribute\GuidAttribute.cs" />
+    <Compile Include="Behavior\AccelerometerLockStation.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="BluetoothManager.cs" />
     <Compile Include="BluetoothService.cs" />
+    <Compile Include="BluetoothServiceConfigEnum.cs" />
     <Compile Include="BluetoothServiceDataTypeEnum.cs" />
     <Compile Include="BluetoothServiceTypeEnum.cs" />
     <Compile Include="IBluetoothService.cs" />
